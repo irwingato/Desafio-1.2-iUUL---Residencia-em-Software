@@ -187,40 +187,42 @@ function agendarConsulta() {
         return;
     }
 
-    const dataConsulta = prompt('Digite a data da consulta (DD/MM/YYYY): '); // Solicita ao usuário que digite a data da consulta
-    const horaInicial = prompt('Digite a hora inicial da consulta (HHmm): '); // Solicita ao usuário que digite a hora inicial da consulta
-    const horaFinal = prompt('Digite a hora final da consulta (HHmm): '); // Solicita ao usuário que digite a hora final da consulta
+    while (true) {
+        const dataConsulta = prompt('Digite a data da consulta (DD/MM/YYYY): '); // Solicita ao usuário que digite a data da consulta
+        const horaInicial = prompt('Digite a hora inicial da consulta (HHmm): '); // Solicita ao usuário que digite a hora inicial da consulta
+        const horaFinal = prompt('Digite a hora final da consulta (HHmm): '); // Solicita ao usuário que digite a hora final da consulta
 
-    if (!verificarPacienteCadastrado(cpf)) {
-        console.log('Erro: paciente não cadastrado.');
-        return;
+        const dataConsultaFormatada = DateTime.fromFormat(dataConsulta, 'dd/MM/yyyy'); // Converte a string da data da consulta para um objeto DateTime
+        const horaInicialFormatada = DateTime.fromFormat(horaInicial, 'HHmm'); // Converte a string da hora inicial para um objeto DateTime
+        const horaFinalFormatada = DateTime.fromFormat(horaFinal, 'HHmm'); // Converte a string da hora final para um objeto DateTime
+
+        const dataAtual = DateTime.now(); // Obtém a data e hora atuais
+
+        if (dataConsultaFormatada <= dataAtual || (dataConsultaFormatada === dataAtual && horaInicialFormatada <= dataAtual)) {
+            console.log('Erro: A data e hora da consulta devem ser para um período futuro.');
+            continue;
+        }
+
+        // Restante do código de validação...
+
+        const tempo = calcularTempoConsulta(horaInicial, horaFinal); // Calcula a duração da consulta em minutos usando a função calcularTempoConsulta
+
+        const consulta = {
+            cpfPaciente: cpf,
+            dataConsulta: dataConsulta,
+            horaInicio: horaInicial,
+            horaFim: horaFinal,
+            tempo: tempo,
+            nome: paciente.nome,
+            dataNascimento: paciente.dataNascimento
+        }; // Cria um objeto com os dados da consulta
+
+        consultas.push(consulta); // Adiciona a consulta ao array de consultas
+        console.log('Agendamento realizado com sucesso!');
+        break; // Sai do loop
     }
-
-    const dataNascimento = paciente.dataNascimento;
-
-    const dataConsultaFormatada = DateTime.fromFormat(dataConsulta, 'dd/MM/yyyy'); // Converte a string da data da consulta para um objeto DateTime
-    const horaInicialFormatada = DateTime.fromFormat(horaInicial, 'HHmm'); // Converte a string da hora inicial para um objeto DateTime
-    const horaFinalFormatada = DateTime.fromFormat(horaFinal, 'HHmm'); // Converte a string da hora final para um objeto DateTime
-
-    // Restante do código de validação...
-
-    const tempo = calcularTempoConsulta(horaInicial, horaFinal); // Calcula a duração da consulta em minutos usando a função calcularTempoConsulta
-
-    const consulta = {
-        cpfPaciente: cpf,
-        dataConsulta: dataConsulta,
-        horaInicio: horaInicial,
-        horaFim: horaFinal,
-        tempo: tempo,
-        nome: paciente.nome,
-        dataNascimento: dataNascimento
-    }; // Cria um objeto com os dados da consulta
-
-    consultas.push(consulta); // Adiciona a consulta ao array de consultas
-    console.log('Agendamento realizado com sucesso!');
-
-    agenda = consultas.filter(consulta => consulta.cpfPaciente === cpf); // Atualiza o vetor agenda com as consultas do paciente com o CPF fornecido
 }
+
 
 function calcularIdade(dataNascimento, dataAtual) {
     const diffYears = dataAtual.diff(dataNascimento, 'years').years; // Calcula a diferença de anos entre a data de nascimento e a data atual
