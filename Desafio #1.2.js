@@ -12,10 +12,6 @@ class Paciente {
     }
 }
 
-const pacientes = []; // Cria um array vazio para armazenar os pacientes cadastrados
-const consultas = []; // Cria um array vazio para armazenar as consultas agendadas
-let agenda = []; // Cria um array vazio para armazenar a agenda de consultas
-
 function validarCPF(cpf) {
     cpf = cpf.replace(/\D/g, ''); // Remove todos os caracteres não numéricos do CPF
 
@@ -66,36 +62,158 @@ function validarDataNascimento(dataNascimento) {
     return dataNasc.isValid && dataAtual.diff(dataNasc, 'years').years >= 13; // Verifica se a data de nascimento é válida e se o paciente tem pelo menos 13 anos
 }
 
-function incluirPaciente() {
+// Função para ler os dados de um paciente a partir do prompt
+function lerDadosPaciente() {
+
     while (true) {
-        const cpf = prompt('CPF: '); // Solicita ao usuário que digite o CPF
-        if (!validarCPF(cpf)) { // Verifica se o CPF é válido usando a função validarCPF
-            console.log('CPF inválido. Tente novamente.');
-            continue; // Reinicia o loop se o CPF for inválido
+        const cpf = prompt('CPF: ');
+        if (!validarCPF(cpf)) {
+            mostrarMensagemErro('CPF inválido. Tente novamente.');
+            continue;
         }
 
-        const nome = prompt('Nome: '); // Solicita ao usuário que digite o nome
-        if (!validarNome(nome)) { // Verifica se o nome é válido usando a função validarNome
-            console.log('Nome inválido. O nome deve ter pelo menos 5 caracteres.');
-            continue; // Reinicia o loop se o nome for inválido
+        const nome = prompt('Nome: ');
+        if (!validarNome(nome)) {
+            mostrarMensagemErro('Nome inválido. O nome deve ter pelo menos 5 caracteres.');
+            continue;
         }
 
-        const dataNascimento = prompt('Data de nascimento (formato DD/MM/AAAA): '); // Solicita ao usuário que digite a data de nascimento
-        if (!validarDataNascimento(dataNascimento)) { // Verifica se a data de nascimento é válida usando a função validarDataNascimento
-            console.log('Data de nascimento inválida. O paciente deve ter pelo menos 13 anos.');
-            continue; // Reinicia o loop se a data de nascimento for inválida
+        const dataNascimento = prompt('Data de nascimento (formato DD/MM/YYYY): ');
+        if (!validarDataNascimento(dataNascimento)) {
+            mostrarMensagemErro('Data de nascimento inválida. O paciente deve ter pelo menos 13 anos.');
+            continue;
         }
 
-        const paciente = new Paciente(cpf, nome, dataNascimento); // Cria um novo objeto Paciente com os dados fornecidos
-        if (pacientes.find((p) => p.cpf === paciente.cpf)) { // Verifica se já existe um paciente cadastrado com o mesmo CPF
-            console.log('Erro: CPF já cadastrado. Tente novamente.');
-            continue; // Reinicia o loop se o CPF já estiver cadastrado
+        return { cpf, nome, dataNascimento };
+    }
+}
+
+// Função para mostrar mensagens de erro
+function mostrarMensagemErro(mensagem) {
+    console.error('Erro:', mensagem);
+}
+
+
+class Agenda {
+    constructor(){
+        this.consultas = [];
+    }
+}
+
+function agendarConsulta() {
+    const cpf = prompt('Digite o CPF: '); // Solicita ao usuário que digite o CPF
+    const paciente = pesquisarPacientePorCPF(cpf); // Pesquisa o paciente com o CPF fornecido
+
+    if (!paciente) {
+        console.log('Erro: paciente não cadastrado.');
+        return;
+    }
+
+    while (true) {
+        const dataConsulta = prompt('Digite a data da consulta (DD/MM/YYYY): '); // Solicita ao usuário que digite a data da consulta
+        const horaInicial = prompt('Digite a hora inicial da consulta (HHmm): '); // Solicita ao usuário que digite a hora inicial da consulta
+        const horaFinal = prompt('Digite a hora final da consulta (HHmm): '); // Solicita ao usuário que digite a hora final da consulta
+
+        const dataConsultaFormatada = DateTime.fromFormat(dataConsulta, 'dd/MM/yyyy'); // Converte a string da data da consulta para um objeto DateTime
+        const horaInicialFormatada = DateTime.fromFormat(horaInicial, 'HHmm'); // Converte a string da hora inicial para um objeto DateTime
+        const horaFinalFormatada = DateTime.fromFormat(horaFinal, 'HHmm'); // Converte a string da hora final para um objeto DateTime
+
+        const dataAtual = DateTime.now(); // Obtém a data e hora atuais
+
+        if (dataConsultaFormatada <= dataAtual || (dataConsultaFormatada === dataAtual && horaInicialFormatada <= dataAtual)) {
+            console.log('Erro: A data e hora da consulta devem ser para um período futuro.');
+            continue;
         }
 
-        pacientes.push(paciente); // Adiciona o paciente ao array de pacientes
-        console.log('Paciente cadastrado com sucesso!');
+        // Restante do código de validação...
+
+        const tempo = calcularTempoConsulta(horaInicial, horaFinal); // Calcula a duração da consulta em minutos usando a função calcularTempoConsulta
+
+        const consulta = {
+            cpfPaciente: cpf,
+            dataConsulta: dataConsulta,
+            horaInicio: horaInicial,
+            horaFim: horaFinal,
+            tempo: tempo,
+            nome: paciente.nome,
+            dataNascimento: paciente.dataNascimento
+        }; // Cria um objeto com os dados da consulta
+
+        consultas.push(consulta); // Adiciona a consulta ao array de consultas
+        console.log('Agendamento realizado com sucesso!');
         break; // Sai do loop
     }
+}
+
+function cancelarAgendamento() {
+    const cpf = prompt('Digite o CPF do paciente: '); // Solicita ao usuário que digite o CPF do paciente
+    const dataConsulta = prompt('Digite a data da consulta (DD/MM/YYYY): '); // Solicita ao usuário que digite a data da consulta
+    const horaInicial = prompt('Digite a hora inicial da consulta (HHmm): '); // Solicita ao usuário que digite a hora inicial da consulta
+
+    const consultaEncontrada = consultas.find(
+        (consulta) =>
+            consulta.cpfPaciente === cpf &&
+            consulta.dataConsulta === dataConsulta &&
+            consulta.horaInicio === horaInicial
+    ); // Procura a consulta no array de consultas usando o CPF, data e hora fornecidos
+
+    if (consultaEncontrada) { // Verifica se a consulta foi encontrada
+        const indiceConsulta = consultas.indexOf(consultaEncontrada); // Encontra o índice da consulta no array de consultas
+        consultas.splice(indiceConsulta, 1); // Remove a consulta do array
+        console.log('Agendamento cancelado com sucesso!');
+    } else {
+        mostrarMensagemErro('Agendamento não encontrado.');
+    }
+}
+
+function listarAgenda() {
+    const opcaoAgenda = prompt('Apresentar a agenda T-Toda ou P-Periodo: P '); // Solicita ao usuário que escolha a opção de visualização da agenda
+    console.log('------------------------------------------------------------------------------');
+    console.log('Data           H.Ini   H.Fim Tempo Nome                    Dt.Nasc.');
+    console.log('------------------------------------------------------------------------------');
+
+    const dataAtual = DateTime.now();
+
+    if (opcaoAgenda.toUpperCase() === 'T') { // Verifica se a opção selecionada é 'T' (toda a agenda)
+        const consultasAgendadas = consultas.filter(
+            (consulta) => DateTime.fromFormat(consulta.dataConsulta, 'dd/MM/yyyy') > dataAtual
+        ); // Filtra as consultas agendadas que ainda não ocorreram
+
+        if (consultasAgendadas.length === 0) {
+            console.log('Não há consultas agendadas.');
+        } else {
+            for (const consulta of consultasAgendadas) {
+                console.log(
+                    `${consulta.dataConsulta}     ${consulta.horaInicio}     ${consulta.horaFim} ${consulta.tempo}    ${consulta.nome}        ${consulta.dataNascimento}`
+                );
+            }
+        }
+    } else if (opcaoAgenda.toUpperCase() === 'P') { // Verifica se a opção selecionada é 'P' (período)
+        const dataInicial = prompt('Informe a data inicial (DD/MM/AAAA): '); // Solicita ao usuário que digite a data inicial do período
+        const dataFinal = prompt('Informe a data final (DD/MM/AAAA): '); // Solicita ao usuário que digite a data final do período
+
+        const dataInicialFormatada = DateTime.fromFormat(dataInicial, 'dd/MM/yyyy'); // Converte a string da data inicial para um objeto DateTime
+        const dataFinalFormatada = DateTime.fromFormat(dataFinal, 'dd/MM/yyyy'); // Converte a string da data final para um objeto DateTime
+
+        const consultasAgendadas = consultas.filter((consulta) => {
+            const dataConsulta = DateTime.fromFormat(consulta.dataConsulta, 'dd/MM/yyyy'); // Converte a string da data da consulta para um objeto DateTime
+            return dataConsulta >= dataInicialFormatada && dataConsulta <= dataFinalFormatada; // Verifica se a data da consulta está dentro do período especificado
+        });
+
+        if (consultasAgendadas.length === 0) {
+            console.log('Não há consultas agendadas nesse período.');
+        } else {
+            for (const consulta of consultasAgendadas) {
+                console.log(
+                    `                ${consulta.dataConsulta} ${consulta.horaInicio} ${consulta.horaFim} ${consulta.tempo} ${consulta.nome} ${consulta.dataNascimento}`
+                );
+            }
+        }
+    } else {
+        console.log('Opção inválida.');
+    }
+
+    console.log('------------------------------------------------------------------------------');
 }
 
 function temConsultaFutura(cpf) {
@@ -112,6 +230,27 @@ function obterConsultasPassadas(cpf) {
     ); // Filtra as consultas do paciente com CPF fornecido que já ocorreram
 
     return consultasPassadas; // Retorna as consultas passadas encontradas
+}
+
+const pacientes = []; // Cria um array vazio para armazenar os pacientes cadastrados
+const consultas = []; // Cria um array vazio para armazenar as consultas agendadas
+let agenda = []; // Cria um array vazio para armazenar a agenda de consultas
+
+function incluirPaciente() {
+    while (true) {
+        const dadosPaciente = lerDadosPaciente(); // Chama a função para ler os dados do paciente
+        const { cpf, nome, dataNascimento } = dadosPaciente; // Extrai as informações do objeto retornado
+
+        const paciente = new Paciente(cpf, nome, dataNascimento); // Cria um novo objeto Paciente com os dados fornecidos
+        if (pacientes.find((p) => p.cpf === paciente.cpf)) { // Verifica se já existe um paciente cadastrado com o mesmo CPF
+            console.log('Erro: CPF já cadastrado. Tente novamente.');
+            continue; // Reinicia o loop se o CPF já estiver cadastrado
+        }
+
+        pacientes.push(paciente); // Adiciona o paciente ao array de pacientes
+        console.log('Paciente cadastrado com sucesso!');
+        break; // Sai do loop
+    }
 }
 
 function verificarPacienteCadastrado(cpf) {
@@ -178,52 +317,6 @@ function pesquisarPacientePorCPF(cpf) {
     return pacientes.find((paciente) => paciente.cpf === cpf) || null; // Pesquisa o paciente com o CPF fornecido no array de pacientes e retorna o paciente encontrado ou null se não for encontrado
 }
 
-function agendarConsulta() {
-    const cpf = prompt('Digite o CPF: '); // Solicita ao usuário que digite o CPF
-    const paciente = pesquisarPacientePorCPF(cpf); // Pesquisa o paciente com o CPF fornecido
-
-    if (!paciente) {
-        console.log('Erro: paciente não cadastrado.');
-        return;
-    }
-
-    while (true) {
-        const dataConsulta = prompt('Digite a data da consulta (DD/MM/YYYY): '); // Solicita ao usuário que digite a data da consulta
-        const horaInicial = prompt('Digite a hora inicial da consulta (HHmm): '); // Solicita ao usuário que digite a hora inicial da consulta
-        const horaFinal = prompt('Digite a hora final da consulta (HHmm): '); // Solicita ao usuário que digite a hora final da consulta
-
-        const dataConsultaFormatada = DateTime.fromFormat(dataConsulta, 'dd/MM/yyyy'); // Converte a string da data da consulta para um objeto DateTime
-        const horaInicialFormatada = DateTime.fromFormat(horaInicial, 'HHmm'); // Converte a string da hora inicial para um objeto DateTime
-        const horaFinalFormatada = DateTime.fromFormat(horaFinal, 'HHmm'); // Converte a string da hora final para um objeto DateTime
-
-        const dataAtual = DateTime.now(); // Obtém a data e hora atuais
-
-        if (dataConsultaFormatada <= dataAtual || (dataConsultaFormatada === dataAtual && horaInicialFormatada <= dataAtual)) {
-            console.log('Erro: A data e hora da consulta devem ser para um período futuro.');
-            continue;
-        }
-
-        // Restante do código de validação...
-
-        const tempo = calcularTempoConsulta(horaInicial, horaFinal); // Calcula a duração da consulta em minutos usando a função calcularTempoConsulta
-
-        const consulta = {
-            cpfPaciente: cpf,
-            dataConsulta: dataConsulta,
-            horaInicio: horaInicial,
-            horaFim: horaFinal,
-            tempo: tempo,
-            nome: paciente.nome,
-            dataNascimento: paciente.dataNascimento
-        }; // Cria um objeto com os dados da consulta
-
-        consultas.push(consulta); // Adiciona a consulta ao array de consultas
-        console.log('Agendamento realizado com sucesso!');
-        break; // Sai do loop
-    }
-}
-
-
 function calcularIdade(dataNascimento, dataAtual) {
     const diffYears = dataAtual.diff(dataNascimento, 'years').years; // Calcula a diferença de anos entre a data de nascimento e a data atual
     return diffYears >= 0 ? diffYears : null; // Retorna a idade em anos se for maior ou igual a zero, caso contrário, retorna null
@@ -276,76 +369,7 @@ function listarPacientesOrdenadosPorNome() {
     console.log('------------------------------------------------------------------------------');
 }
 
-function cancelarAgendamento() {
-    const cpf = prompt('Digite o CPF do paciente: '); // Solicita ao usuário que digite o CPF do paciente
-    const dataConsulta = prompt('Digite a data da consulta (DD/MM/YYYY): '); // Solicita ao usuário que digite a data da consulta
-    const horaInicial = prompt('Digite a hora inicial da consulta (HHmm): '); // Solicita ao usuário que digite a hora inicial da consulta
 
-    const consultaEncontrada = consultas.find(
-        (consulta) =>
-            consulta.cpfPaciente === cpf &&
-            consulta.dataConsulta === dataConsulta &&
-            consulta.horaInicio === horaInicial
-    ); // Procura a consulta no array de consultas usando o CPF, data e hora fornecidos
-
-    if (consultaEncontrada) { // Verifica se a consulta foi encontrada
-        const indiceConsulta = consultas.indexOf(consultaEncontrada); // Encontra o índice da consulta no array de consultas
-        consultas.splice(indiceConsulta, 1); // Remove a consulta do array
-        console.log('Agendamento cancelado com sucesso!');
-    } else {
-        console.log('Agendamento não encontrado.');
-    }
-}
-
-function listarAgenda() {
-    const opcaoAgenda = prompt('Apresentar a agenda T-Toda ou P-Periodo: P '); // Solicita ao usuário que escolha a opção de visualização da agenda
-    console.log('------------------------------------------------------------------------------');
-    console.log('Data           H.Ini   H.Fim Tempo Nome                    Dt.Nasc.');
-    console.log('------------------------------------------------------------------------------');
-
-    const dataAtual = DateTime.now();
-
-    if (opcaoAgenda.toUpperCase() === 'T') { // Verifica se a opção selecionada é 'T' (toda a agenda)
-        const consultasAgendadas = consultas.filter(
-            (consulta) => DateTime.fromFormat(consulta.dataConsulta, 'dd/MM/yyyy') > dataAtual
-        ); // Filtra as consultas agendadas que ainda não ocorreram
-
-        if (consultasAgendadas.length === 0) {
-            console.log('Não há consultas agendadas.');
-        } else {
-            for (const consulta of consultasAgendadas) {
-                console.log(
-                    `${consulta.dataConsulta}     ${consulta.horaInicio}     ${consulta.horaFim} ${consulta.tempo}    ${consulta.nome}        ${consulta.dataNascimento}`
-                );
-            }
-        }
-    } else if (opcaoAgenda.toUpperCase() === 'P') { // Verifica se a opção selecionada é 'P' (período)
-        const dataInicial = prompt('Informe a data inicial (DD/MM/AAAA): '); // Solicita ao usuário que digite a data inicial do período
-        const dataFinal = prompt('Informe a data final (DD/MM/AAAA): '); // Solicita ao usuário que digite a data final do período
-
-        const dataInicialFormatada = DateTime.fromFormat(dataInicial, 'dd/MM/yyyy'); // Converte a string da data inicial para um objeto DateTime
-        const dataFinalFormatada = DateTime.fromFormat(dataFinal, 'dd/MM/yyyy'); // Converte a string da data final para um objeto DateTime
-
-        const consultasAgendadas = consultas.filter((consulta) => {
-            const dataConsulta = DateTime.fromFormat(consulta.dataConsulta, 'dd/MM/yyyy'); // Converte a string da data da consulta para um objeto DateTime
-            return dataConsulta >= dataInicialFormatada && dataConsulta <= dataFinalFormatada; // Verifica se a data da consulta está dentro do período especificado
-        });
-
-        if (consultasAgendadas.length === 0) {
-            console.log('Não há consultas agendadas nesse período.');
-        } else {
-            for (const consulta of consultasAgendadas) {
-                console.log(
-                    `                ${consulta.dataConsulta} ${consulta.horaInicio} ${consulta.horaFim} ${consulta.tempo} ${consulta.nome} ${consulta.dataNascimento}`
-                );
-            }
-        }
-    } else {
-        console.log('Opção inválida.');
-    }
-
-    console.log('------------------------------------------------------------------------------');
-}
 
 
 let sairDoPrograma = false; // Variável que controla se o programa deve sair
