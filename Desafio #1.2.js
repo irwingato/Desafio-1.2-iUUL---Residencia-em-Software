@@ -1,9 +1,11 @@
-import PromptSync from 'prompt-sync'; // Importa a biblioteca 'prompt-sync' para receber input do usuário
-import moment from 'moment'; // Importa a biblioteca 'moment' para trabalhar com datas e horários
-import { DateTime } from 'luxon'; // Importa a classe 'DateTime' da biblioteca 'luxon' para trabalhar com datas e horários
+// Importa as bibliotecas necessárias para o funcionamento do programa
+import PromptSync from 'prompt-sync'; // Biblioteca para receber input do usuário
+import moment from 'moment'; // Biblioteca para trabalhar com datas e horários
+import { DateTime } from 'luxon'; // Biblioteca para trabalhar com datas e horários
 
 const prompt = PromptSync({ sigint: true }); // Cria uma instância do prompt-sync para receber input do usuário
 
+// Define a classe Paciente que representa os dados de um paciente
 class Paciente {
     constructor(cpf, nome, dataNascimento) {
         this.cpf = cpf; // Atribui o valor do CPF fornecido ao atributo 'cpf' do paciente
@@ -12,6 +14,7 @@ class Paciente {
     }
 }
 
+// Função para validar o CPF
 function validarCPF(cpf) {
     cpf = cpf.replace(/\D/g, ''); // Remove todos os caracteres não numéricos do CPF
 
@@ -51,10 +54,12 @@ function validarCPF(cpf) {
     return true; // Retorna verdadeiro se o CPF é válido
 }
 
+// Função para validar o nome
 function validarNome(nome) {
     return nome.length >= 5; // Retorna verdadeiro se o nome possui pelo menos 5 caracteres
 }
 
+// Função para validar a data de nascimento
 function validarDataNascimento(dataNascimento) {
     const dataAtual = DateTime.now(); // Obtém a data e hora atuais
     const dataNasc = DateTime.fromFormat(dataNascimento, 'dd/MM/yyyy'); // Converte a string da data de nascimento para um objeto DateTime
@@ -93,13 +98,14 @@ function mostrarMensagemErro(mensagem) {
     console.error('Erro:', mensagem);
 }
 
-
+// Define a classe Agenda que possui um atributo 'consultas', que é um array para armazenar as consultas agendadas
 class Agenda {
     constructor(){
         this.consultas = [];
     }
 }
 
+// Função para agendar uma consulta
 function agendarConsulta() {
     const cpf = prompt('Digite o CPF: '); // Solicita ao usuário que digite o CPF
     const paciente = pesquisarPacientePorCPF(cpf); // Pesquisa o paciente com o CPF fornecido
@@ -145,6 +151,7 @@ function agendarConsulta() {
     }
 }
 
+// Função para cancelar um agendamento
 function cancelarAgendamento() {
     const cpf = prompt('Digite o CPF do paciente: '); // Solicita ao usuário que digite o CPF do paciente
     const dataConsulta = prompt('Digite a data da consulta (DD/MM/YYYY): '); // Solicita ao usuário que digite a data da consulta
@@ -166,6 +173,7 @@ function cancelarAgendamento() {
     }
 }
 
+// Função para listar a agenda de consultas disponíveis
 function listarAgenda() {
     const opcaoAgenda = prompt('Apresentar a agenda T-Toda ou P-Periodo: P '); // Solicita ao usuário que escolha a opção de visualização da agenda
     console.log('------------------------------------------------------------------------------');
@@ -216,6 +224,7 @@ function listarAgenda() {
     console.log('------------------------------------------------------------------------------');
 }
 
+// Função para verificar se um paciente possui consulta futura
 function temConsultaFutura(cpf) {
     const consultasFuturas = consultas.filter(
         (consulta) => consulta.cpf === cpf && DateTime.fromISO(consulta.data) > DateTime.now()
@@ -224,6 +233,7 @@ function temConsultaFutura(cpf) {
     return consultasFuturas.length > 0; // Retorna verdadeiro se existir pelo menos uma consulta futura
 }
 
+// Função para obter as consultas passadas de um paciente
 function obterConsultasPassadas(cpf) {
     const consultasPassadas = consultas.filter(
         (consulta) => consulta.cpf === cpf && DateTime.fromISO(consulta.data) < DateTime.now()
@@ -253,10 +263,12 @@ function incluirPaciente() {
     }
 }
 
+// Função para verificar se um paciente está cadastrado com o CPF fornecido
 function verificarPacienteCadastrado(cpf) {
     return pacientes.some((paciente) => paciente.cpf === cpf); // Verifica se existe um paciente cadastrado com o CPF fornecido
 }
 
+// Função para excluir um paciente do cadastro
 function excluirPacienteDoCadastro(cpf) {
     const indicePaciente = pacientes.findIndex((paciente) => paciente.cpf === cpf); // Encontra o índice do paciente com o CPF fornecido no array de pacientes
 
@@ -268,6 +280,7 @@ function excluirPacienteDoCadastro(cpf) {
     }
 }
 
+// Função para excluir uma consulta passada de um paciente
 function excluirConsultaPassada(cpf, data) {
     const consultasAgendadas = obterConsultasPassadas(cpf); // Obtém as consultas passadas do paciente com o CPF fornecido
     const indiceConsulta = consultasAgendadas.findIndex((consulta) => consulta.data === data); // Encontra o índice da consulta com a data fornecida no array de consultas passadas
@@ -280,6 +293,7 @@ function excluirConsultaPassada(cpf, data) {
     }
 }
 
+// Função para excluir um paciente e suas consultas passadas
 function excluirPaciente(cpf) {
     const pacienteCadastrado = verificarPacienteCadastrado(cpf); // Verifica se o paciente está cadastrado
 
@@ -304,6 +318,7 @@ function excluirPaciente(cpf) {
     console.log('Paciente excluído com sucesso.');
 }
 
+// Função para calcular a duração da consulta em minutos
 function calcularTempoConsulta(horaInicial, horaFinal) {
     const formatoHora = 'HHmm';
     const horaInicialFormatada = DateTime.fromFormat(horaInicial, formatoHora); // Converte a string da hora inicial para um objeto DateTime
@@ -313,15 +328,18 @@ function calcularTempoConsulta(horaInicial, horaFinal) {
     return duracao.minutes; // Retorna a duração da consulta em minutos
 }
 
+// Função para pesquisar um paciente por CPF
 function pesquisarPacientePorCPF(cpf) {
     return pacientes.find((paciente) => paciente.cpf === cpf) || null; // Pesquisa o paciente com o CPF fornecido no array de pacientes e retorna o paciente encontrado ou null se não for encontrado
 }
 
+// Função para calcular a idade com base na data de nascimento
 function calcularIdade(dataNascimento, dataAtual) {
     const diffYears = dataAtual.diff(dataNascimento, 'years').years; // Calcula a diferença de anos entre a data de nascimento e a data atual
     return diffYears >= 0 ? diffYears : null; // Retorna a idade em anos se for maior ou igual a zero, caso contrário, retorna null
 }
 
+// Função para listar os pacientes ordenados por CPF
 function listarPacientesOrdenadosPorCPF() {
     console.log('Opção 3 selecionada: Listar pacientes (ordenado por CPF)');
     console.log('------------------------------------------------------------------------------');
@@ -341,6 +359,7 @@ function listarPacientesOrdenadosPorCPF() {
     console.log('------------------------------------------------------------------------------');
 }
 
+// Função para listar os pacientes ordenados por nome e suas consultas passadas
 function listarPacientesOrdenadosPorNome() {
     const pacientesOrdenados = pacientes.slice().sort((a, b) => a.nome.localeCompare(b.nome)); // Cria uma cópia do array de pacientes e ordena pelo nome em ordem alfabética
 
@@ -369,11 +388,9 @@ function listarPacientesOrdenadosPorNome() {
     console.log('------------------------------------------------------------------------------');
 }
 
-
-
-
 let sairDoPrograma = false; // Variável que controla se o programa deve sair
 
+// Função para exibir o Menu Principal e permitir interação do usuário
 function exibirMenuPrincipal() {
     while (!sairDoPrograma) { // Loop principal do menu
         console.log('Menu Principal');
@@ -396,6 +413,7 @@ function exibirMenuPrincipal() {
     }
 }
 
+// Função para exibir o Menu de Cadastro de Pacientes e permitir interação do usuário
 function exibirMenuCadastroPacientes() {
     while (!sairDoPrograma) { // Loop do menu de cadastro de pacientes
         console.log('Cadastro de pacientes');

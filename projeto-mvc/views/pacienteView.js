@@ -1,7 +1,9 @@
+// Função para mostrar mensagens de erro
 function mostrarMensagemErro(mensagem) {
   console.error('Erro:', mensagem);
 }
 
+// Função para exibir a lista de pacientes
 function exibirListaPacientes(pacientesListados, ordem) {
   console.log(`Opção 3 selecionada: Listar pacientes (ordenado por ${ordem})`);
   console.log("------------------------------------------------------------------------------");
@@ -22,6 +24,7 @@ function exibirListaPacientes(pacientesListados, ordem) {
   console.log("------------------------------------------------------------------------------");
 }
 
+// Exporta as funções que serão utilizadas em outros módulos
 module.exports = {
   mostrarMensagemErro,
   exibirListaPacientes,

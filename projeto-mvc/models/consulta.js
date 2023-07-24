@@ -1,3 +1,4 @@
+// Classe que representa uma consulta
 class Consulta {
     constructor(cpfPaciente, dataConsulta, horaInicio, horaFim, tempo) {
         this.cpfPaciente = cpfPaciente;
@@ -8,4 +9,6 @@ class Consulta {
     }
 }
 
+
+// Exporta a classe Consulta para ser utilizada em outros módulos
 module.exports = Consulta;

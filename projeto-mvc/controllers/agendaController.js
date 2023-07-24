@@ -6,8 +6,9 @@ const { verificarPacienteCadastrado } = require('./pacienteController');
 const consultas = [];
 const pacientes = [];
 const agenda = new Agenda();
-const { mostrarMensagemErro } = require('../views/pacienteView'); // Adicione esta linha
+const { mostrarMensagemErro } = require('../views/pacienteView'); // Importa a função mostrarMensagemErro do módulo pacienteView
 
+// Função para validar o CPF
 function validarCPF(cpf) {
     cpf = cpf.replace(/\D/g, ''); // Remove todos os caracteres não numéricos do CPF
 
@@ -47,10 +48,12 @@ function validarCPF(cpf) {
     return true; // Retorna verdadeiro se o CPF é válido
 }
 
+// Função para validar o nome
 function validarNome(nome) {
     return nome.length >= 5; // Retorna verdadeiro se o nome possui pelo menos 5 caracteres
 }
 
+// Função para validar a data de nascimento
 function validarDataNascimento(dataNascimento) {
     const dataAtual = DateTime.now(); // Obtém a data e hora atuais
     const dataNasc = DateTime.fromFormat(dataNascimento, 'dd/MM/yyyy'); // Converte a string da data de nascimento para um objeto DateTime
@@ -58,6 +61,7 @@ function validarDataNascimento(dataNascimento) {
     return dataNasc.isValid && dataAtual.diff(dataNasc, 'years').years >= 13; // Verifica se a data de nascimento é válida e se o paciente tem pelo menos 13 anos
 }
 
+// Função para calcular a duração de uma consulta em minutos
 function calcularTempoConsulta(horaInicial, horaFinal) {
     const formatoHora = 'HHmm';
     const horaInicialFormatada = DateTime.fromFormat(horaInicial, formatoHora); // Converte a string da hora inicial para um objeto DateTime
@@ -66,6 +70,7 @@ function calcularTempoConsulta(horaInicial, horaFinal) {
     const duracao = horaFinalFormatada.diff(horaInicialFormatada, 'minutes'); // Calcula a diferença de tempo em minutos entre a hora final e a hora inicial
     return duracao.minutes; // Retorna a duração da consulta em minutos
 }
+// Função para ler os dados de um paciente e retornar um objeto com as informações lidas
 function lerDadosPaciente(prompt) {
     while (true) {
         const cpf = prompt('CPF: ');
@@ -90,6 +95,7 @@ function lerDadosPaciente(prompt) {
     }
 }
 
+// Função para agendar uma consulta
 function agendarConsulta(prompt) {
     while (true) {
         const { cpf, nome, dataNascimento } = lerDadosPaciente(prompt);
@@ -126,7 +132,7 @@ function agendarConsulta(prompt) {
         break;
     }
 }
-
+// Função para cancelar o agendamento de uma consulta
 function cancelarAgendamento(prompt) {
     while (true) {
         const cpf = prompt('Digite o CPF do paciente: ');
@@ -155,6 +161,7 @@ function cancelarAgendamento(prompt) {
     }
 }
 
+// Função para listar a agenda de consultas
 function listarAgenda(opcaoAgenda) {
     console.log('------------------------------------------------------------------------------');
     console.log('Data           H.Ini   H.Fim Tempo Nome                    Dt.Nasc.');
@@ -203,6 +210,7 @@ function listarAgenda(opcaoAgenda) {
     console.log('------------------------------------------------------------------------------');
 }
 
+// Função para verificar se um paciente possui consultas futuras agendadas
 function temConsultaFutura(cpf) {
     const consultasFuturas = consultas.filter(
         (consulta) => consulta.cpf === cpf && DateTime.fromISO(consulta.data) > DateTime.now()
@@ -211,6 +219,7 @@ function temConsultaFutura(cpf) {
     return consultasFuturas.length > 0; // Retorna verdadeiro se existir pelo menos uma consulta futura
 }
 
+// Função para obter as consultas passadas de um paciente
 function obterConsultasPassadas(cpf) {
     const consultasPassadas = consultas.filter(
         (consulta) => consulta.cpf === cpf && DateTime.fromISO(consulta.data) < DateTime.now()
@@ -219,7 +228,7 @@ function obterConsultasPassadas(cpf) {
     return consultasPassadas; // Retorna as consultas passadas encontradas
 }
 
-
+// Exporta as funções que serão utilizadas em outros módulos
 module.exports = {
     agendarConsulta,
     cancelarAgendamento,

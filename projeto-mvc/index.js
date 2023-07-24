@@ -5,6 +5,7 @@ const agendaController = require('./controllers/agendaController');
 const prompt = PromptSync({ sigint: true });
 let sairDoPrograma = false;
 
+// Função para exibir o menu principal do programa
 function exibirMenuPrincipal() {
     while (!sairDoPrograma) {
         console.log('Menu Principal');
@@ -27,6 +28,7 @@ function exibirMenuPrincipal() {
     }
 }
 
+// Função para exibir o menu de cadastro de pacientes
 function exibirMenuCadastroPacientes() {
     while (!sairDoPrograma) {
         console.log('Cadastro de pacientes');
@@ -62,6 +64,8 @@ function exibirMenuCadastroPacientes() {
         }
     }
 }
+
+// Função para exibir o menu da agenda
 function exibirMenuAgenda() {
     let sairDoMenuAgenda = false;
 
@@ -93,4 +97,5 @@ function exibirMenuAgenda() {
     }
 }
 
+// Inicia o programa exibindo o menu principal
 exibirMenuPrincipal();
