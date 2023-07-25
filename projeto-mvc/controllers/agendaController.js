@@ -61,6 +61,13 @@ function validarDataNascimento(dataNascimento) {
     return dataNasc.isValid && dataAtual.diff(dataNasc, 'years').years >= 13; // Verifica se a data de nascimento é válida e se o paciente tem pelo menos 13 anos
 }
 
+// Função para validar se a data é válida e maior que a data atual
+function validarDataFutura(data) {
+    const dataFormatada = DateTime.fromFormat(data, 'dd/MM/yyyy');
+    const dataAtual = DateTime.now();
+    return dataFormatada.isValid && dataFormatada > dataAtual;
+}
+
 // Função para calcular a duração de uma consulta em minutos
 function calcularTempoConsulta(horaInicial, horaFinal) {
     const formatoHora = 'HHmm';
@@ -98,9 +105,10 @@ function lerDadosPaciente(prompt) {
 // Função para agendar uma consulta
 function agendarConsulta(prompt) {
     while (true) {
-        const { cpf, nome, dataNascimento } = lerDadosPaciente(prompt);
+        const cpf = prompt('Digite o CPF do paciente: ');
 
-        if (!agendaController.verificarPacienteCadastrado(cpf)) {
+        const pacienteCadastrado = verificarPacienteCadastrado(cpf);
+        if (!pacienteCadastrado) {
             console.log('Erro: paciente não cadastrado.');
             continue;
         }
@@ -132,6 +140,7 @@ function agendarConsulta(prompt) {
         break;
     }
 }
+
 // Função para cancelar o agendamento de uma consulta
 function cancelarAgendamento(prompt) {
     while (true) {
