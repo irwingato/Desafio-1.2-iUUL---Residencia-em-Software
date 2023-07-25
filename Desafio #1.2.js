@@ -175,7 +175,7 @@ function cancelarAgendamento() {
 
 // Função para listar a agenda de consultas disponíveis
 function listarAgenda() {
-    const opcaoAgenda = prompt('Apresentar a agenda T-Toda ou P-Periodo: P '); // Solicita ao usuário que escolha a opção de visualização da agenda
+    const opcaoAgenda = prompt('Apresentar a agenda T-Toda ou P-Periodo: '); // Solicita ao usuário que escolha a opção de visualização da agenda
     console.log('------------------------------------------------------------------------------');
     console.log('Data           H.Ini   H.Fim Tempo Nome                    Dt.Nasc.');
     console.log('------------------------------------------------------------------------------');
